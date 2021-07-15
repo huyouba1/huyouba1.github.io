@@ -1,0 +1,10 @@
+default menu.c32
+   prompt 5
+   timeout 30
+   MENU TITLE CentOS 7 PXE Menu
+
+   LABEL linux
+   MENU LABEL Install CentOS 7 x86_64
+   KERNEL vmlinuz
+   APPEND initrd=initrd.img inst.repo=http://192.168.100.100/centos/7/x86_64 ks=http://192.168.100.100/ks/ks.cfg
+   
