@@ -62,7 +62,7 @@ $ tcpdump -i ens192 host 192.168.10.123 and port 22 -w c.cap`
 # 临时解决
 $ echo 0 > /proc/sys/net/ipv4/tcp_tw_recycle
 
-# 永久解决
+# 永久解决，或升级内核到4.12+
 $ vim /etc/sysctl.conf
 net.ipv4.tcp_tw_recycle = 0
 
@@ -71,4 +71,5 @@ $ sysctl -p
 
 参考链接：
 https://www.cnblogs.com/cyleon/p/16176888.html
+
 https://www.jianshu.com/p/3b8f674f577e
