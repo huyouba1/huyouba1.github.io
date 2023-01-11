@@ -7,9 +7,24 @@ tags: 集群
 关于HA目前有很多的解决方案，比如Heartbeat、keepalived等，各有优缺点。本文以keepalived为例做说明
 
 ### 1.keepalived 概述
+keepalived 的作用是检测后端TCP服务的状态，如果有一台提供TCP服务的后端节点司机，或工作出现故障，keepalived及时检测到，并将有故障的节点从系统中剔除，当提供TCP服务的节点恢复并且正常提供服务后keepalived自动将提供TCP服务的节点加入到激荡中，这些工作全部由keepalived自动完成，不需要人工干涉，需要人工做的只是修复故障的服务器。
 
+keepalived可以工作在TCP/IP协议栈的IP层、TCP层及应用层:
 
-### keepalived 抢占模式
+- IP 层
+    
+    keepalived 使用的IP 的方式工作时，会定期向服务器集群中的服务器发送一个ICMP的数据包，如果发现某台服务的IP地址没有激活，keepalived便报告这台服务器异常，并将其从集群中剔除。常见的场景为某台机器网卡损坏或服务器被非法关机。IP层的工作方式是以服务器的IP地址是否有效作为服务器工作正常与否的标准。
+- TCP 层
+
+    这种工作模式主要是以 TCP 后台服务的状态来确定后端服务器是否工作正常。如 MYSQL默认端口一般为3306，如果keepalived检测到3306无法登录或拒绝连接，则认为后端服务异常，则keepalived将把这台服务器从集群中剔除。
+- 应用层
+
+    如keepalived工作在应用层了，此时keepalived将根据用户的设定检查服务器程序的运行是否正常，如果与用户的设定不相符，则keepalived将把服务器从集群中剔除。
+
+以上几种方式可以通过keepalived的配置文件实现。
+### 2.keepalived 安装与配置
+### 3.keepalived 启动与测试
+### 4.keepalived 抢占模式
 `keepalived`配置抢占模式就是：当`keepalived`的`master`节点服务器挂了之后vip漂移到了备节点，当主节点恢复后主动将vip再次抢回来。
 
 `keepalived`默认就是抢占模式。
