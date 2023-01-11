@@ -23,6 +23,9 @@ keepalived可以工作在TCP/IP协议栈的IP层、TCP层及应用层:
 
 以上几种方式可以通过keepalived的配置文件实现。
 ### 2.keepalived 安装与配置
+
+![](/images/posts/media/keepalived01.png)
+
 本节实现的功能为访问172.32.10.18 的web服务时，自动代理到后端的真实服务器 192.168.10.114 和 192.168.10.121，keepalived主机为172.32.10.14，备机为192.168.10.68。
 
 最新的版本可以在https://keepalived.org 获取，本示例采用的版本为2.2.2。
