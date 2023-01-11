@@ -137,12 +137,13 @@ keepalived可以工作在TCP/IP协议栈的IP层、TCP层及应用层:
 ```
 
 2. 测试keepalived
+
 故障模拟主要分为主节点重启，服务恢复，此时，备节点正常服务，当主节点恢复后主节点重新接管资源正常服务
 ```
-# 主节点服务终止
+#主节点服务终止
 [root@vulhub keepalived-2.2.2]# systemctl stop keepalived.service
 
-# 备节点接管服务
+#备节点接管服务
 [root@vulhub keepalived-2.2.2]# ip a
 
 2: ens192: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
@@ -153,7 +154,7 @@ keepalived可以工作在TCP/IP协议栈的IP层、TCP层及应用层:
        valid_lft forever preferred_lft forever
 
 
-# 备节点日志
+#备节点日志
 1月 11 14:00:09 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Backup received priority 0 advertisement
 1月 11 14:00:10 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Receive advertisement timeout
 1月 11 14:00:10 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Entering MASTER STATE
@@ -161,7 +162,7 @@ keepalived可以工作在TCP/IP协议栈的IP层、TCP层及应用层:
 1月 11 14:00:10 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Sending/queueing gratuitous ARPs on ens32 for 172.32.10.18
 
 
-# 主节点恢复后查看服务情况，18地址恢复。
+#主节点恢复后查看服务情况，18地址恢复。
 [root@vulhub keepalived-2.2.2]# systemctl start keepalived.service
 [root@vulhub keepalived-2.2.2]# ip a
 2: ens192: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
@@ -172,7 +173,7 @@ keepalived可以工作在TCP/IP协议栈的IP层、TCP层及应用层:
        valid_lft forever preferred_lft forever
 
 
-# 从节点日志
+#从节点日志
 1月 11 14:01:41 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Master received advert from 172.32.10.14 with higher priority 50, ours 49
 1月 11 14:01:41 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Entering BACKUP STATE
 1月 11 14:01:41 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) removing VIPs.
