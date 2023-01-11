@@ -237,15 +237,118 @@ $ systemctl enable keepalived.service && systemctl start keepalived.service
 master故障--->backup顶上--->master恢复不抢占vip--->backup拥有vip继续工作
 ```
 
-非抢占模式配置：
-```
+**非抢占模式配置：**
+
 1、两个节点的state都必须配置为BACKUP(官方建议)
+
 2、两个节点都在vrrp_instance中添加nopreempt参数（其实优先级高的配置nopreempt参数即可）
+
 3、其中一个节点的优先级必须要高于另外一个节点的优先级。
 
 两台服务器都启用nopreempt后，必须修改角色状态统一为BACKUP，唯一的区分就是优先级。
 
-官方对nopreempt参数解释：高优先级VRRP实例通常会抢占低优先级VRRP实例，
-"nopreempt"参数将停止优先级更高的机器在抢占vip，并允许较低优先级的机器保持为master。
+官方对nopreempt参数解释：高优先级VRRP实例通常会抢占低优先级VRRP实例，"nopreempt"参数将停止优先级更高的机器在抢占vip，并允许较低优先级的机器保持为master。
+
 注意:要使nopreempt参数起作用，初始状态不能是MASTER。
+
+### 5.配置非抢占模式的keepalived
+**节点1**
+
 ```
+#配置一个优先级高的节点，同时使用nopreempt参数定义为非抢占模式
+[root@vulhub keepalived-2.2.2]# cat /etc/keepalived/keepalived.conf
+! Configuration File for keepalived
+
+global_defs {
+   router_id vulhub  # 节点名称
+}
+
+vrrp_instance VI_1 {
+    
+    state BACKUP       # 配置为BACKUP，因为我们要用非抢占模式
+    interface ens192
+    virtual_router_id 51
+    nopreempt          # 配置为非抢占模式
+    priority 50
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        172.32.10.18
+    }
+}
+virtual_server 172.32.10.18 80 {
+    delay_loop 6
+    lb_algo rr
+    lb_kind NAT
+    persistence_timeout 50
+    protocol TCP
+
+    real_server 192.168.10.114 80 {
+        weight 1
+    }
+    real_server 192.168.10.121 80 {
+        weight 1
+    }
+}
+
+```
+
+**节点2**
+```
+#配置一个优先级低的节点，可以不用使用nopreempt参数
+[root@localhost keepalived-2.2.2]# cat /etc/keepalived/keepalived.conf
+! Configuration File for keepalived
+
+global_defs {
+   router_id vulhub  # 节点名称
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface ens32
+    virtual_router_id 51
+    priority 49
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        172.32.10.18
+    }
+}
+virtual_server 172.32.10.18 80 {
+    delay_loop 6
+    lb_algo rr
+    lb_kind NAT
+    persistence_timeout 50
+    protocol TCP
+
+    real_server 192.168.10.114 80 {
+        weight 1
+    }
+    real_server 192.168.10.121 80 {
+        weight 1
+    }
+}
+```
+现在，我们配置了两个节点，这两个节点state指定的都是BACKUP，同时，其中一个优先级高于一个节点，优先级高的节点配置了 nopreempt参数表示非抢占模式。下面来验证。
+
+### 6.验证非抢占模式
+启动两个节点，哪个节点的keepalived先启动那么vip就会绑定在哪个节点上。
+如果优先级低的节点先启动，那么vip肯定是在优先级低的节点上，再启动优先级高的节点，由于优先级高的节点配置了`nopreempt`参数所以不会去抢占vip。
+
+注意：配置非抢占模式后，我们要注意启动keepalived服务的顺序，假设我想让A服务成为backup备节点，那就不能先启动A服务的keepalived服务。
+
+**验证**
+![](/images/posts/media/vip1.png)
+![](/images/posts/media/vip2.png)
+![](/images/posts/media/vip3.png)
+![](/images/posts/media/vip4.png)
+![](/images/posts/media/vip5.png)
+![](/images/posts/media/vip6.png)
+
+**验证成功**
