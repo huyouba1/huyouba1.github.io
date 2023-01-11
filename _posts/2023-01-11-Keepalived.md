@@ -104,15 +104,85 @@ keepalived可以工作在TCP/IP协议栈的IP层、TCP层及应用层:
 备节点配置大部分配置同主节点，不同处如下所示
 
 ```
+[root@localhost keepalived-2.2.2]# cat -n /etc/keepalived/keepalived.conf
+     8	    # 不同于主节点，备机state设置为 BACKUP
+     9	    state BACKUP
+    10	    # 绑定虚拟 IP 的网络接口
+    11	    interface ens32
+    12	    # VRRP组名，两个节点需要设置一样，以指明各个节点属于同一VRRP组
+    13	    virtual_router_id 51
+    14	    # 主节点的优先级，数值在1~254，注意从节点必须比主节点优先级低
+    15	    priority 49
+    16	    # 组播信息发送间隔，两个节点需要设置一样
+    17	    advert_int 1
+```
+/etc/keepalived/keepalived.conf 为 keepalived 的主配置文件。以上配置state表示主节点为172.32.10.14，备节点为192.168.10.68.虚拟IP为172.32.10.18。后端的真是服务器有192.168.10.114和192.168.10.121，当通过172.32.10.18访问web服务时，自动跳转到后端的真实节点，后端节点的权重相同，类似轮询的模式。http服务的部署此处不做赘述。
+
+### 3.keepalived 启动与测试
+经过上面的步骤，keepalived已经部署完成，接下来进行keepalived的启动与故障模拟测试。
+
+1. 启动keepalived，可直接通过systemd启动。service文件已经在编译过程中自动配置。
+```
+[root@vulhub keepalived-2.2.2]# systemctl enable keepalived.service  && systemctl start keepalived.service
+```
+![](/images/posts/media/ipaddress.png)
+分别在主备节点上启动keepalived，然后通过ip命令查看服务状态，在主节点ens192接口绑定了172.32.10.18这个VIP，而备节点处于监听状态。web服务可以通过VIP直接访问
 
 ```
+[root@vulhub keepalived-2.2.2]# curl 172.32.10.18
+<h1>web1</h1>
 
+[root@vulhub keepalived-2.2.2]# curl 172.32.10.18
+<h1>web2</h1>
 ```
-$ ./configure  --prefix=/data/keepalived
-$ make && make install 
-$ cp /data/keepalived/sbin/keepalived /usr/sbin
-$ mkdir /etc/keepalived
-$ cp /data/keepalived/etc/keepalived/keepalived.conf   /etc/keepalived/
+
+2. 测试keepalived
+故障模拟主要分为主节点重启，服务恢复，此时，备节点正常服务，当主节点恢复后主节点重新接管资源正常服务
+```
+# 主节点服务终止
+[root@vulhub keepalived-2.2.2]# systemctl stop keepalived.service
+
+# 备节点接管服务
+[root@vulhub keepalived-2.2.2]# ip a
+
+2: ens192: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:50:56:b2:49:bd brd ff:ff:ff:ff:ff:ff
+    inet 172.32.10.14/24 brd 172.32.10.255 scope global noprefixroute ens192
+       valid_lft forever preferred_lft forever
+    inet6 fe80::250:56ff:feb2:49bd/64 scope link
+       valid_lft forever preferred_lft forever
+
+
+# 备节点日志
+1月 11 14:00:09 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Backup received priority 0 advertisement
+1月 11 14:00:10 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Receive advertisement timeout
+1月 11 14:00:10 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Entering MASTER STATE
+1月 11 14:00:10 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) setting VIPs.
+1月 11 14:00:10 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Sending/queueing gratuitous ARPs on ens32 for 172.32.10.18
+
+
+# 主节点恢复后查看服务情况，18地址恢复。
+[root@vulhub keepalived-2.2.2]# systemctl start keepalived.service
+[root@vulhub keepalived-2.2.2]# ip a
+2: ens192: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:50:56:b2:49:bd brd ff:ff:ff:ff:ff:ff
+    inet 172.32.10.14/24 brd 172.32.10.255 scope global noprefixroute ens192
+       valid_lft forever preferred_lft forever
+    inet 172.32.10.18/32 scope global ens192
+       valid_lft forever preferred_lft forever
+
+
+# 从节点日志
+1月 11 14:01:41 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Master received advert from 172.32.10.14 with higher priority 50, ours 49
+1月 11 14:01:41 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) Entering BACKUP STATE
+1月 11 14:01:41 localhost.localdomain Keepalived_vrrp[52381]: (VI_1) removing VIPs.
+```
+当主节点故障时，备节点首先将自己设置为MASTER节点，然后接管资源并对外提供服务，主节点故障恢复时，备节点重新设置为BACKUP模式，主节点继续提供服务。keepalived提供了其他丰富的功能，如故障检测、健康检查、故障后的预处理等，更多信息可以查阅帮助文档
+
+
+**真实示例**
+> 该示例为生产环境当中，为了使k8s apiserver高可用的示例。vrrp_script 段是检测脚本，持续检查9443端口的存活情况，如不存在则故障迁移。
+```
 $ vim /etc/keepalived/keepalived.conf
 
 ! Configuration File for keepalived
@@ -148,7 +218,8 @@ vrrp_instance VI_11 {
 $ systemctl enable keepalived.service && systemctl start keepalived.service
 
 ```
-### 3.keepalived 启动与测试
+
+
 ### 4.keepalived 抢占模式
 `keepalived`配置抢占模式就是：当`keepalived`的`master`节点服务器挂了之后vip漂移到了备节点，当主节点恢复后主动将vip再次抢回来。
 
