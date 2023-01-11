@@ -345,10 +345,20 @@ virtual_server 172.32.10.18 80 {
 
 **验证**
 ![](/images/posts/media/vip1.png)
+> ---
+
 ![](/images/posts/media/vip2.png)
+> ---
+
 ![](/images/posts/media/vip3.png)
+> ---
+
 ![](/images/posts/media/vip4.png)
+> ---
+
 ![](/images/posts/media/vip5.png)
+> ---
+
 ![](/images/posts/media/vip6.png)
 
 **验证成功**
