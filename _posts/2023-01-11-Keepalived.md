@@ -183,6 +183,7 @@ keepalived可以工作在TCP/IP协议栈的IP层、TCP层及应用层:
 
 **真实示例**
 > 该示例为生产环境当中，为了使k8s apiserver高可用的示例。vrrp_script 段是检测脚本，持续检查9443端口的存活情况，如不存在则故障迁移。
+
 ```
 $ vim /etc/keepalived/keepalived.conf
 
