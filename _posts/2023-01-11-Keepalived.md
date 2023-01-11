@@ -23,6 +23,131 @@ keepalived可以工作在TCP/IP协议栈的IP层、TCP层及应用层:
 
 以上几种方式可以通过keepalived的配置文件实现。
 ### 2.keepalived 安装与配置
+本节实现的功能为访问172.32.10.18 的web服务时，自动代理到后端的真实服务器 192.168.10.114 和 192.168.10.121，keepalived主机为172.32.10.14，备机为192.168.10.68。
+
+最新的版本可以在https://keepalived.org 获取，本示例采用的版本为2.2.2。
+
+【两个节点都需操作】
+```
+[root@vulhub keepalived]# tar xf keepalived-2.2.2.tar.gz
+
+[root@vulhub keepalived]# cd keepalived-2.2.2/
+
+# 安装编译环境的依赖
+[root@vulhub keepalived-2.2.2]# yum -y install gcc openssl-devel libnl3-devel net-snmp-devel
+
+[root@vulhub keepalived-2.2.2]# ./configure --prefix=/usr/local/keepalived
+
+[root@vulhub keepalived-2.2.2]# make
+
+[root@vulhub keepalived-2.2.2]# make install
+
+[root@vulhub keepalived-2.2.2]# ln -s /usr/local/keepalived/etc/keepalived/ /etc/
+```
+经过上面的步骤，keepalived已经安装完成，安装路径为`/usr/local/keepalived`，备节点操作步骤同主节点。
+
+
+```
+# 主节点配置文件
+[root@vulhub keepalived-2.2.2]# cat -n /etc/keepalived/keepalived.conf
+     1	! Configuration File for keepalived
+     2
+     3	global_defs {
+     4	   router_id vulhub  # 节点名称  
+     5	}
+     6
+     7	vrrp_instance VI_1 {
+     8      # 指定该节点为主节点 备用节点上需要设置为 BACKUP
+     9 	    state MASTER
+    10      # 绑定虚拟 IP 的网络接口
+    11	    interface ens192
+    12      # VRRP组名，两个节点需要设置一样，以指明各个节点属于同一VRRP组
+    13	    virtual_router_id 51
+    14      # 主节点的优先级，数值在1~254，注意从节点必须比主节点优先级低
+    15	    priority 50
+    16      # 组播信息发送间隔，两个节点需要设置一样
+    17	    advert_int 1
+    18      # 设置验证信息，两个节点需要一致
+    19	    authentication {
+    20	        auth_type PASS
+    21	        auth_pass 1111
+    22	    }
+    23      # 指定虚拟IP，两个节点需要设置一样
+    24	    virtual_ipaddress {
+    25	        172.32.10.18
+    26	    }
+    27	}
+    28  # 虚拟IP服务
+    29	virtual_server 172.32.10.18 80 {
+    30      # 设定检查实际服务器的间隔
+    31	    delay_loop 6
+    32      # 指定LVS算法
+    32	    lb_algo rr
+    33      # 指定LVS模式
+    33	    lb_kind NAT
+    34      # 持久连接设置，会话保持时间
+    35	    persistence_timeout 50
+    36      # 转发协议为TCP
+    37	    protocol TCP
+    38
+    39      # 后端实际TCP服务配置
+    40	    real_server 192.168.10.114 80 {
+    41	        weight 1
+    42	    }
+    43      # 后端实际TCP服务配置
+    44	    real_server 192.168.10.121 80 {
+    45	        weight 1
+    46	    }
+    47	}
+
+```
+备节点配置大部分配置同主节点，不同处如下所示
+
+```
+
+```
+
+```
+$ ./configure  --prefix=/data/keepalived
+$ make && make install 
+$ cp /data/keepalived/sbin/keepalived /usr/sbin
+$ mkdir /etc/keepalived
+$ cp /data/keepalived/etc/keepalived/keepalived.conf   /etc/keepalived/
+$ vim /etc/keepalived/keepalived.conf
+
+! Configuration File for keepalived
+global_defs {
+   router_id k8s-master01  # 节点名称
+}
+
+vrrp_script chk_haproxy {
+    script "/bin/bash -c 'if [[ $(netstat -nlp | grep 9443) ]]; then exit 0; else exit 1; fi'"
+    interval 2
+    fall 2
+    weight 50
+}
+
+vrrp_instance VI_11 {
+    state MASTER
+    interface em1  # 网卡名
+    virtual_router_id 22
+    priority 100  # 优先级
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        192.168.20.111  # 虚拟地址
+    }
+    track_script {
+        chk_haproxy
+    }
+}
+
+$ systemctl enable keepalived.service && systemctl start keepalived.service
+
+```
 ### 3.keepalived 启动与测试
 ### 4.keepalived 抢占模式
 `keepalived`配置抢占模式就是：当`keepalived`的`master`节点服务器挂了之后vip漂移到了备节点，当主节点恢复后主动将vip再次抢回来。
