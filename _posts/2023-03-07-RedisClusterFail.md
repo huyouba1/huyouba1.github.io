@@ -14,7 +14,7 @@ tags: 常见问题处理
 通过ansible-playbook进行集群的节点重新部署，发现无法成功将新节点加入到集群当中,报错信息为初始化集群失败
 ![](/images/posts/media/rediserr.jpg)
 
-1. 查看集群节点信息，发现原192.168.10.82上面的redis节点状态已为fail
+#### 查看集群节点信息，发现原192.168.10.82上面的redis节点状态已为fail
 
 ```bash
 $ redis-cli  cluster nodes  
@@ -27,7 +27,7 @@ c154139de89052d4f91bbb2200d4486feabeb4b3 :0@0 slave,fail,noaddr 514fb336003c8859
 6306f8536190ced29dd1fd465014a561d56582e9 192.168.10.83:6380@16380 master - 0 1678167198007 7 connected 5461-10922
 ```
 因为原节点系统是无法登录的，所以数据方面，只能靠集群自身高可用恢复
-2. 由于原节点已经fail，尝试重新分配slot报错，需先修复集群
+#### 由于原节点已经fail，尝试重新分配slot报错，需先修复集群
 
 ```bash
 $  ./bin/redis-cli  --cluster reshard 192.168.10.81:6379
@@ -79,7 +79,7 @@ Cluster Manager Commands:
 For check, fix, reshard, del-node, set-timeout you can specify the host and port of any working node in the cluster.
 ```
 
-3. 执行修复操作
+#### 执行修复操作
 
 ```bash
 $ ./bin/redis-cli  --cluster fix 192.168.10.81:6379
@@ -109,7 +109,7 @@ Moving slot 12417 from 192.168.10.83:6379 to 192.168.10.81:6379: *** Target key 
 [OK] All 16384 slots covered.
 
 ```
-4. 查看集群状态 为 ok
+#### 查看集群状态 为 ok
 
 ```bash
 $ ./bin/redis-cli -h 192.168.10.81  -a '123qweasdZXC!@#' cluster info
@@ -136,7 +136,7 @@ cluster_stats_messages_auth-req_received:1
 cluster_stats_messages_received:981650
 ```
 
-5. 集群状态恢复后，则需要梳理一下主从关系信息，重新分配主从角色
+#### 集群状态恢复后，则需要梳理一下主从关系信息，重新分配主从角色
 
 ```bash
 53ef0b0fcbeaef543890c9c38aa1abd3d56a3009 192.168.10.81:6380@16380 slave 4bf04d8a86e1019afddafa2ce4fa16025ac6c26c 0 1678167197004 5 connected
@@ -157,7 +157,7 @@ $ ./bin/redis-cli  --cluster add-node 192.168.10.82:6379 192.168.10.81:6379 --cl
 $ ./bin/redis-cli  --cluster add-node 192.168.10.82:6380 192.168.10.81:6379 --cluster-slave --cluster-master-id 514fb336003c8859a5f30134fea4388e6f4ab698
 ```
 
-6. 加入节点之后，需要重新均衡slot，并且需要重新分配slot
+#### 加入节点之后，需要重新均衡slot，并且需要重新分配slot
 
 ```bash
 $ ./bin/redis-cli  --cluster rebalance 192.168.10.82:6379
@@ -172,8 +172,8 @@ $ ./bin/redis-cli  --cluster reshard 192.168.10.82:6379
 集群恢复，fail状态的节点直接forget即可
 ```bash
 $ ./bin/redis-cli  cluster forget adc2411aa619a5fff377736a42002e6d004157e8
-Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.
 OK
 $ ./bin/redis-cli  cluster forget c154139de89052d4f91bbb2200d4486feabeb4b3
+OK
 ```
 ![](/images/posts/media/redisnodess.png)
