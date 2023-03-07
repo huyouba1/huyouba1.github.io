@@ -2,7 +2,7 @@
 layout: post
 title: calico is not ready
 date: 2022-07-18
-tags: kubernetes报错
+tags: 常见问题处理
 ---
 ### 问题现象
 1. calico 一直 Crash

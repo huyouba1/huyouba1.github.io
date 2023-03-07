@@ -2,7 +2,7 @@
 layout: post
 title: prometheus alert rules 导入失败问题
 date: 2021-10-10 
-tags: kubernetes报错
+tags: 常见问题处理
 ---
 
 ### 问题现象：

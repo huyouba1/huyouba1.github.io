@@ -2,7 +2,7 @@
 layout: post
 title: Docker 启动后，没有生成Iptables规则表
 date: 2022-11-03 
-tags: kubernetes报错
+tags: 常见问题处理
 ---
 ### 问题现象
 > 启动容器后，无法正常跨主机出网

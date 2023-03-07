@@ -2,7 +2,7 @@
 layout: post
 title: kubelet too many open files 
 date: 2021-09-26 
-tags: kubernetes报错
+tags: 常见问题处理
 ---
 
 ### 问题现象

@@ -2,7 +2,7 @@
 layout: post
 title: PrometheusRuleFailures
 date: 2021-10-10 
-tags: kubernetes报错
+tags: 常见问题处理
 ---
 ### 问题现象
 > 出现此类告警需查看 prometheus 的日志，错误信息 err="query processing would load too many samples into memory in query execution"

@@ -2,7 +2,7 @@
 layout: post
 title: ipmi-exporter一直处于ContainerCreating
 date: 2022-04-12 
-tags: kubernetes报错
+tags: 常见问题处理
 ---
 ### 问题现象
 ![](/images/posts/error/ipmi.png)

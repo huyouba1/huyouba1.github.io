@@ -2,7 +2,7 @@
 layout: post
 title: prometheus 告警含义
 date: 2021-10-10 
-tags: kubernetes报错
+tags: 常见问题处理
 ---
 告警名称|告警含义
 ---|---

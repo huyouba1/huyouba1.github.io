@@ -2,7 +2,7 @@
 layout: post
 title: 客户端连接服务端口时通时不通
 date: 2022-11-16
-tags: kubernetes报错
+tags: 常见问题处理
 ---
 ### 问题现象
 1. 客户端访问对端服务器端口，时通时不通

@@ -2,7 +2,7 @@
 layout: post
 title: kube-flannel CrashLoopBackOff
 date: 2021-09-26 
-tags: kubernetes报错
+tags: 常见问题处理
 ---
 ### 背景
 三个节点的集群，其中一个节点的 flannal 异常
