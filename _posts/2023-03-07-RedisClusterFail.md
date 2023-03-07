@@ -112,7 +112,7 @@ Moving slot 12417 from 192.168.10.83:6379 to 192.168.10.81:6379: *** Target key 
 #### 查看集群状态 为 ok
 
 ```bash
-$ ./bin/redis-cli -h 192.168.10.81  -a '123qweasdZXC!@#' cluster info
+$ ./bin/redis-cli  cluster info
 Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.
 cluster_state:ok    //ok
 cluster_slots_assigned:16384
