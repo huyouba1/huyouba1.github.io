@@ -12,7 +12,7 @@ tags: 常见问题处理
 
 ### 排查记录
 通过ansible-playbook进行集群的节点重新部署，发现无法成功将新节点加入到集群当中,报错信息为初始化集群失败
-![](/images/posts/media/rediserr.jpg)
+![](/images/posts/media/rediserr.png)
 
 #### 查看集群节点信息，发现原192.168.10.82上面的redis节点状态已为fail
 
