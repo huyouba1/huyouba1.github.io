@@ -212,11 +212,13 @@ tcpdump -vvAs0 port 53
 tcpdump port http or port ftp or port smtp or port imap or port pop3 or port telnet -lA | egrep -i -B5 'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd= |password=|pass:|user:|username:|password:|login:|pass |user '
 ```
 **wireshark 追踪流**
+
 wireshare 追踪流可以很好的了解出在一次交互过程中都发生了那些问题。
 
 wireshare 选中包，右键选择 “追踪流“ 如果该包是允许的协议是可以打开该选项的
 
 **关于抓包节点和抓包设备**
+
 如何抓取有用的包，以及如何找到对应的接口，有以下建议
 
 抓包节点：
@@ -238,12 +240,13 @@ nsenter 是一款可以进入进程的名称空间中。例如，如果一个容
 
 nsenter (namespace enter) 可以在容器的宿主机上使用 nsenter 命令进入容器的命名空间，以容器视角使用宿主机上的相应网络命令进行操作。当然需要拥有 root 权限
 
-
+```
 Ubuntu/Debian: util-linux  ；apt-get install -y util-linux
 
 Centos/Fedora: util-linux ；yum install -y util-linux
 
 Apline：util-linux ；apk add util-linux --no-cache
+```
 
 nsenter 的 c 使用语法为，nsenter -t pid -n <commond>，-t 接 进程 ID 号，-n 表示进入名称空间内，<commond> 为执行的命令。
 
@@ -337,7 +340,7 @@ IP	|Hostname|	role
 
 - 所有节点之间的 pod 通信正常
 - 任意节点和 Pod curl registry 的 Pod 的 IP:5000 均可以连通
-- 新扩容节点 10.153.204.15 curl registry 服务的 Cluster lP 10.233.0.100:5000 不通，其他节点 curl 均可以连通
+- 新扩容节点 10.153.204.15 curl registry 服务的 Cluster lP `10.233.0.100:5000` 不通，其他节点 curl 均可以连通
 
 分析思路：
 
@@ -360,7 +363,7 @@ IP	|Hostname|	role
 
 排查过程：
 
-确认存在到 registry 服务的 Cluster lP 10.233.0.100 的 KUBE-SERVICES 链，跳转至 KUBE-SVC-* 链做负载均衡，再跳转至 KUBE-SEP-* 链通过 DNAT 替换为服务后端 Pod 的 IP 10.233.65.46。因此判断 iptables 规则无异常执行 route-n 查看问题节点存在访问 10.233.65.46 所在网段的路由，如图所示
+确认存在到 registry 服务的 Cluster lP `10.233.0.100` 的 `KUBE-SERVICES` 链，跳转至 KUBE-SVC-* 链做负载均衡，再跳转至 `KUBE-SEP-*` 链通过 DNAT 替换为服务后端 Pod 的 IP `10.233.65.46`。因此判断 iptables 规则无异常执行 route-n 查看问题节点存在访问 `10.233.65.46` 所在网段的路由，如图所示
 
 ![](/images/posts/media/route1.png)
 
@@ -369,7 +372,7 @@ IP	|Hostname|	role
 ![](/images/posts/media/route2.png)
 
 
-以上排查证明问题原因不是 cni 插件或者 kube-proxy 异常导致，因此需要在访问链路上抓包，判断问题原因、问题节点执行 curl 10.233.0.100:5000，在问题节点和后端 pod 所在节点的 flannel.1 上同时抓包发包节点一直在重传，Cluster lP 已 DNAT 转换为后端 Pod IP，如图所示(抓包过程，发送端)
+以上排查证明问题原因不是 cni 插件或者 kube-proxy 异常导致，因此需要在访问链路上抓包，判断问题原因、问题节点执行 `curl 10.233.0.100:5000`，在问题节点和后端 pod 所在节点的 flannel.1 上同时抓包发包节点一直在重传，Cluster lP 已 DNAT 转换为后端 Pod IP，如图所示(抓包过程，发送端)
 
 ![](/images/posts/media/tcpdump1.png)
 
@@ -396,11 +399,11 @@ IP	|Hostname|	role
 
 接下来在两端物理机网卡接口抓包，因为数据包通过物理机网卡会进行 vxlan 封装，需要抓 vxlan 设备的 8472 端口，发包端如图所示
 
-发现网络链路连通，但封装的 IP 不对，封装的源端节点 IP 是 10.153.204.228，但是存在问题节点的 IP 是 10.153.204.15（问题节点物理机网卡接口抓包）
+发现网络链路连通，但封装的 IP 不对，封装的源端节点 IP 是 `10.153.204.228`，但是存在问题节点的 IP 是 `10.153.204.15`（问题节点物理机网卡接口抓包）
 
 ![](/images/posts/media/tcpdump7.png)
 
-后端 Pod 所在节点的物理网卡上抓包，注意需要过滤其他正常节点的请求包，如图所示；发现收到的数据包，源地址是 10.153.204.228，但是问题节点的 IP 是 10.153.204.15。(对端节点物理机网卡接口抓包)
+后端 Pod 所在节点的物理网卡上抓包，注意需要过滤其他正常节点的请求包，如图所示；发现收到的数据包，源地址是 `10.153.204.228`，但是问题节点的 IP 是` 10.153.204.15`。(对端节点物理机网卡接口抓包)
 
 ![](/images/posts/media/tcpdump8.png)
 
