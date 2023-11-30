@@ -6,8 +6,8 @@ tags: Go
 ---
 
 
-### GVR/GVK
-#### 简介
+## GVR/GVK
+### 简介
 在围绕Kubernetes的功能开发中，经常会调用到Kubernetes提供的API，本章就来介绍一下Kubernetes的API接口规则
 
 Kubernetes是通过HTTP协议咦RESTFUL的形式提供的，同时支持JSON和Protobuf的数据格式，Protobuf是方便集群内部调用而支持的，我们自己平时调用Kubernetes接口，一般都是使用JSON数据格式的。
@@ -23,7 +23,7 @@ Kubernetes是通过HTTP协议咦RESTFUL的形式提供的，同时支持JSON和P
 ![](/images/posts/media/clientgo2.png)
 
 
-#### GVR/GVK 含义介绍
+### GVR/GVK 含义介绍
 - G(Group)： 资源组，包含一组资源操作的集合
 - V(Version)：资源版本，用于区分不同API的稳定程度及兼容性
 - R(Resource): 资源信息，用于区分不同的资源API
@@ -45,12 +45,12 @@ RESTMapper其主要作用是在ListerWatcher时，根据schema定义的类型GVK
 
 
 
-### Client-Go 简介
+## Client-Go 简介
 Client-go 是负责与Kubernetes Apiserver服务进行交互的客户端库，利用Client-Go与Kubernetes进行的交互访问，以此来对Kubernetes中的各类资源对象进行管理操作，包括内置的资源对象以及CRD。
 
 Client-go不仅被Kubernetes项目本身使用，其他围绕Kubernetes的生态，也被大量的使用，例如：kubectl，ETCD-operator等
 
-#### Client-go客户端对象
+### Client-go客户端对象
 Client-go提供了4种与KubernetesApiserver交互的客户端对象，分表是RESTClient、DiscoveryClient、ClientSet、DynamicClient。
 
 - RESTClient：最基础的客户端，主要是对HTTP请求进行封装，支持Json和Protobuf格式的数据。
