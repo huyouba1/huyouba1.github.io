@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Client-go 接口规则介绍
+title: Client-go 介绍
 date: 2023-08-28
 tags: Go
 ---
@@ -40,3 +40,23 @@ GET /apis/apps/v1/namespaces/{namespace}/deployments/{name}
 GVK，相反，通过GVK信息则可以获取要读取得资源对象的GVR，进而构建RESTFUL API请求获取对应的资源。这种GVK与GVR的映射叫做RESTMapper。
 
 RESTMapper其主要作用是在ListerWatcher时，根据schema定义的类型GVK解析出GVR，向APIserver发起HTTP请求获取资源，然后watch
+
+
+
+
+
+### Client-Go 简介
+Client-go 是负责与Kubernetes Apiserver服务进行交互的客户端库，利用Client-Go与Kubernetes进行的交互访问，以此来对Kubernetes中的各类资源对象进行管理操作，包括内置的资源对象以及CRD。
+
+Client-go不仅被Kubernetes项目本身使用，其他围绕Kubernetes的生态，也被大量的使用，例如：kubectl，ETCD-operator等
+
+#### Client-go客户端对象
+Client-go提供了4种与KubernetesApiserver交互的客户端对象，分表是RESTClient、DiscoveryClient、ClientSet、DynamicClient。
+
+- RESTClient：最基础的客户端，主要是对HTTP请求进行封装，支持Json和Protobuf格式的数据。
+- DiscoveryClient：发现客户端，负责发现APIServer支持的资源组、资源版本和资源信息
+- ClientSet：负责操作Kubernetes内置的资源对象，例如Pod、Service等
+- DynamicClient：动态客户端，可以对任意的Kubernetes资源对象进行通用操作，包括CRD
+
+
+![](/images/posts/media/clientgo3.png)
