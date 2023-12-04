@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Client-go 介绍
-date: 2023-08-28
+date: 2023-11-30
 tags: Go
 ---
 
@@ -42,7 +42,7 @@ GVK，相反，通过GVK信息则可以获取要读取得资源对象的GVR，�
 RESTMapper其主要作用是在ListerWatcher时，根据schema定义的类型GVK解析出GVR，向APIserver发起HTTP请求获取资源，然后watch
 
 
-
+---
 
 
 ## Client-Go 简介
